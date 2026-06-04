@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 # 🚀 TalentOS — Talent Management System
 
@@ -506,4 +506,3 @@ npm run test:e2e
 **Built with ❤️ using Node.js, React, PostgreSQL, and TypeScript**
 
 </div>
-]]>
