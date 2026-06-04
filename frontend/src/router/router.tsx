@@ -10,6 +10,8 @@ const RecruitmentPage = lazy(async () => import("../features/recruitment/recruit
 const PerformancePage = lazy(async () => import("../features/performance/performance-page").then((module) => ({ default: module.PerformancePage })));
 const AnalyticsPage = lazy(async () => import("../features/analytics/analytics-page").then((module) => ({ default: module.AnalyticsPage })));
 
+const SignupPage = lazy(async () => import("../features/auth/signup-page").then((module) => ({ default: module.SignupPage })));
+
 function RouteLoader() {
   return <div className="panel">Loading workspace...</div>;
 }
@@ -28,10 +30,24 @@ function LoginRoute() {
   return isAuthenticated ? <Navigate replace to="/" /> : withSuspense(<LoginPage />);
 }
 
+function SignupRoute() {
+  const { isAuthenticated, isBootstrapping } = useAuth();
+
+  if (isBootstrapping) {
+    return <RouteLoader />;
+  }
+
+  return isAuthenticated ? <Navigate replace to="/" /> : withSuspense(<SignupPage />);
+}
+
 export const router = createBrowserRouter([
   {
     path: "/login",
     element: <LoginRoute />
+  },
+  {
+    path: "/signup",
+    element: <SignupRoute />
   },
   {
     path: "/",

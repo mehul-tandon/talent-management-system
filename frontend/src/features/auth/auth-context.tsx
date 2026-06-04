@@ -13,6 +13,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isBootstrapping: boolean;
   login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -60,6 +61,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
     isAuthenticated: Boolean(user),
     isBootstrapping,
     async login(email: string, password: string) {
+      const data = await api.post<{ accessToken: string; user: AuthUser }>("/auth/login", {
+        email,
+        password
+      });
+      setAccessToken(data.accessToken);
+      setUser(data.user);
+    },
+    async signup(email: string, password: string) {
+      // First register the user
+      await api.post("/auth/register", {
+        email,
+        password
+      });
+      // Then automatically log them in
       const data = await api.post<{ accessToken: string; user: AuthUser }>("/auth/login", {
         email,
         password

@@ -2,11 +2,12 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth-context";
 
-export function LoginPage() {
+export function SignupPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const [email, setEmail] = useState("hr.admin@tms.local");
-  const [password, setPassword] = useState("Password123!");
+  const { signup } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -15,11 +16,17 @@ export function LoginPage() {
     setLoading(true);
     setError(null);
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
     try {
-      await login(email, password);
+      await signup(email, password);
       navigate("/");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Login failed");
+      setError(submitError instanceof Error ? submitError.message : "Sign up failed");
     } finally {
       setLoading(false);
     }
@@ -30,21 +37,18 @@ export function LoginPage() {
       <section className="hero-card">
         <div>
           <p className="eyebrow">TalentOS</p>
-          <h1>One control plane for hiring, performance, and people analytics.</h1>
+          <h1>Join the modern HR platform.</h1>
           <p className="lede">
-            This starter implements the first working slice of the TMS plan: JWT auth, employee
-            management, recruitment workflows, performance reviews, and KPI dashboards.
+            Sign up to access the TMS demo. Your account will automatically be created with
+            the HR Administrator role, giving you full access to all features.
           </p>
-          <div className="credentials-card">
-            <span>Seed credentials</span>
-            <strong>hr.admin@tms.local / Password123!</strong>
-          </div>
         </div>
 
         <form className="login-card" onSubmit={handleSubmit}>
           <label>
             Email
             <input
+              required
               name="email"
               type="email"
               value={email}
@@ -54,15 +58,28 @@ export function LoginPage() {
           <label>
             Password
             <input
+              required
+              minLength={8}
               name="password"
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
           </label>
+          <label>
+            Confirm Password
+            <input
+              required
+              minLength={8}
+              name="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+            />
+          </label>
           {error ? <p className="error-text">{error}</p> : null}
           <button className="primary-button" disabled={loading} type="submit">
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "Creating account..." : "Sign up"}
           </button>
 
           <div style={{ display: "flex", alignItems: "center", margin: "1rem 0", color: "var(--color-border)" }}>
@@ -83,11 +100,11 @@ export function LoginPage() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            Sign in with Google
+            Sign up with Google
           </button>
-          
+
           <p style={{ textAlign: "center", marginTop: "1rem", fontSize: "14px", color: "var(--color-text-dim)" }}>
-            Don't have an account? <Link to="/signup" style={{ color: "var(--color-brand)" }}>Sign up</Link>
+            Already have an account? <Link to="/login" style={{ color: "var(--color-brand)" }}>Sign in</Link>
           </p>
         </form>
       </section>

@@ -15,10 +15,10 @@ export async function registerUser(input: {
   email: string;
   password: string;
   role: Role;
-  firstName: string;
-  lastName: string;
-  departmentId: string;
-  designation: string;
+  firstName?: string;
+  lastName?: string;
+  departmentId?: string;
+  designation?: string;
 }) {
   const existing = await prisma.user.findUnique({ where: { email: input.email } });
   if (existing) {
@@ -28,6 +28,17 @@ export async function registerUser(input: {
   const passwordHash = await hashValue(input.password);
   const empCode = await generateEmployeeCode(prisma);
 
+  let deptId = input.departmentId;
+  if (!deptId) {
+    let generalDept = await prisma.department.findFirst({ where: { name: "General" } });
+    if (!generalDept) {
+      generalDept = await prisma.department.create({
+        data: { name: "General" }
+      });
+    }
+    deptId = generalDept.id;
+  }
+
   const user = await prisma.user.create({
     data: {
       email: input.email,
@@ -36,11 +47,11 @@ export async function registerUser(input: {
       employee: {
         create: {
           empCode,
-          firstName: input.firstName,
-          lastName: input.lastName,
-          designation: input.designation,
+          firstName: input.firstName || "New",
+          lastName: input.lastName || "User",
+          designation: input.designation || "Pending Assignment",
           hireDate: new Date(),
-          departmentId: input.departmentId,
+          departmentId: deptId,
           status: "ONBOARDING"
         }
       }
