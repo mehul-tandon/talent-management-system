@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tms
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: test-access-secret-12345
+      JWT_REFRESH_SECRET: test-refresh-secret-12345
+      CORS_ORIGIN: http://localhost:5173
+      PUBLIC_BACKEND_URL: http://localhost:5000
+      EMAIL_FROM: no-reply@talentos.local
+      ENABLE_SOCKET_TESTS: "true"
+      VITE_API_URL: /api/v1
+      VITE_API_PROXY_TARGET: http://localhost:5000
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate --workspace backend
+
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build

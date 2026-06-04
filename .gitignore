@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+coverage
+
+# Environment files (contain secrets)
+.env
+backend/.env
+frontend/.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Prisma local dev database
+backend/generated
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+
+# Vite cache
+frontend/.vite
+
+# Logs
+*.log
+
+# Uploads (user-generated content)
+backend/uploads
+backend/backend/uploads
+
+# Build cache
+*.tsbuildinfo
+
+# ─── Excluded from repository ───
+
+# Separate projects (not part of TalentOS)
+Proxima/
+free-claude-code/
+
+# Internal documents (not source code)
+IMPLEMENTATION_PLAN.md
+PRESENTATION.html
+PROJECT_REPORT.md
+PROJECT_DEEP_DIVE.md
+audits/
