@@ -29,6 +29,7 @@ export async function createJob(input: {
   return prisma.jobPosting.create({
     data: {
       ...input,
+      companyId: undefined as any,
       postedById
     }
   });
@@ -55,7 +56,7 @@ export async function updateJob(
 
   return prisma.jobPosting.update({
     where: { id },
-    data: input
+    data: { ...input, companyId: undefined as any }
   });
 }
 

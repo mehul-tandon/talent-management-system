@@ -111,8 +111,10 @@ export async function createEmployee(input: {
       email: input.email,
       role: input.role,
       passwordHash,
+      companyId: undefined as any,
       employee: {
         create: {
+          companyId: undefined as any,
           empCode,
           firstName: input.firstName,
           lastName: input.lastName,

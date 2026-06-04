@@ -5,6 +5,7 @@ import { env } from "../config/env.js";
 export interface JwtPayload {
   sub: string;
   role: Role;
+  companyId: string;
   employeeId: string | null;
   type: "access" | "refresh";
 }

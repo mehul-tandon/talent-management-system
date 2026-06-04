@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { verifyAccessToken } from "../utils/jwt.js";
 import { AppError } from "../utils/app-error.js";
+import { tenantContext } from "../config/db.js";
 
 export function authenticate(req: Request, _res: Response, next: NextFunction) {
   const authorization = req.headers.authorization;
@@ -16,9 +17,13 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
     req.user = {
       id: payload.sub,
       role: payload.role,
+      companyId: payload.companyId,
       employeeId: payload.employeeId
     };
-    return next();
+    
+    tenantContext.run({ companyId: payload.companyId }, () => {
+      next();
+    });
   } catch {
     return next(new AppError("Invalid or expired token", 401, "TOKEN_INVALID"));
   }

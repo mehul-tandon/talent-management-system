@@ -19,5 +19,5 @@ export async function createDepartment(input: {
   parentId?: string;
   headId?: string;
 }) {
-  return prisma.department.create({ data: input });
+  return prisma.department.create({ data: { ...input, companyId: undefined as any } });
 }

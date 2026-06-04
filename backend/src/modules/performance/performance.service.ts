@@ -63,6 +63,7 @@ export async function createReviewCycle(input: {
   return prisma.reviewCycle.create({
     data: {
       ...input,
+      companyId: undefined as any,
       startDate: new Date(input.startDate),
       endDate: new Date(input.endDate)
     }

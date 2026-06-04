@@ -23,6 +23,7 @@ export async function createCourse(input: {
   return prisma.course.create({
     data: {
       ...input,
+      companyId: undefined as any,
       skills: input.skills ?? [],
       isMandatory: input.isMandatory ?? false
     }

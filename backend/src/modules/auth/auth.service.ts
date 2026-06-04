@@ -26,16 +26,20 @@ export async function registerUser(input: {
   }
 
   const passwordHash = await hashValue(input.password);
+  
+  const company = await prisma.company.create({
+    data: {
+      name: `${input.firstName || "New"} ${input.lastName || "User"}'s Company`
+    }
+  });
+
   const empCode = await generateEmployeeCode(prisma);
 
   let deptId = input.departmentId;
   if (!deptId) {
-    let generalDept = await prisma.department.findFirst({ where: { name: "General" } });
-    if (!generalDept) {
-      generalDept = await prisma.department.create({
-        data: { name: "General" }
-      });
-    }
+    const generalDept = await prisma.department.create({
+      data: { name: "General", companyId: company.id }
+    });
     deptId = generalDept.id;
   }
 
@@ -44,8 +48,10 @@ export async function registerUser(input: {
       email: input.email,
       passwordHash,
       role: input.role,
+      companyId: company.id,
       employee: {
         create: {
+          companyId: company.id,
           empCode,
           firstName: input.firstName || "New",
           lastName: input.lastName || "User",
@@ -77,7 +83,8 @@ export async function loginUser(email: string, password: string) {
   const basePayload = {
     sub: user.id,
     role: user.role,
-    employeeId: user.employee?.id ?? null
+    employeeId: user.employee?.id ?? null,
+    companyId: user.companyId
   };
 
   const accessToken = signAccessToken(basePayload);
@@ -103,6 +110,7 @@ export async function loginUser(email: string, password: string) {
       id: user.id,
       email: user.email,
       role: user.role,
+      companyId: user.companyId,
       employee: user.employee
     }
   };
@@ -124,7 +132,8 @@ export async function refreshSession(refreshToken: string) {
   const basePayload = {
     sub: payload.sub,
     role: payload.role,
-    employeeId: payload.employeeId
+    employeeId: payload.employeeId,
+    companyId: session.user.companyId
   };
 
   const nextAccessToken = signAccessToken(basePayload);
@@ -145,6 +154,7 @@ export async function refreshSession(refreshToken: string) {
       id: session.user.id,
       email: session.user.email,
       role: session.user.role,
+      companyId: session.user.companyId,
       employee: session.user.employee
     }
   };

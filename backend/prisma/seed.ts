@@ -19,22 +19,28 @@ async function main() {
   await prisma.session.deleteMany();
   await prisma.department.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.company.deleteMany();
+
+  const company = await prisma.company.create({
+    data: { name: "Demo Company Inc." }
+  });
 
   const passwordHash = await bcrypt.hash("Password123!", 12);
 
   const engineering = await prisma.department.create({
-    data: { name: "Engineering", location: "Bengaluru", costCenter: "ENG-001" }
+    data: { name: "Engineering", location: "Bengaluru", costCenter: "ENG-001", companyId: company.id }
   });
 
   const peopleOps = await prisma.department.create({
-    data: { name: "People Operations", location: "Bengaluru", costCenter: "HR-001" }
+    data: { name: "People Operations", location: "Bengaluru", costCenter: "HR-001", companyId: company.id }
   });
 
   const adminUser = await prisma.user.create({
     data: {
       email: "hr.admin@tms.local",
       passwordHash,
-      role: Role.HR_ADMIN
+      role: Role.HR_ADMIN,
+      companyId: company.id
     }
   });
 
@@ -42,7 +48,8 @@ async function main() {
     data: {
       email: "manager@tms.local",
       passwordHash,
-      role: Role.DEPT_MANAGER
+      role: Role.DEPT_MANAGER,
+      companyId: company.id
     }
   });
 
@@ -50,13 +57,15 @@ async function main() {
     data: {
       email: "employee@tms.local",
       passwordHash,
-      role: Role.EMPLOYEE
+      role: Role.EMPLOYEE,
+      companyId: company.id
     }
   });
 
   const manager = await prisma.employee.create({
     data: {
       userId: managerUser.id,
+      companyId: company.id,
       empCode: "EMP-1001",
       firstName: "Priya",
       lastName: "Nair",
@@ -72,6 +81,7 @@ async function main() {
   const employee = await prisma.employee.create({
     data: {
       userId: employeeUser.id,
+      companyId: company.id,
       empCode: "EMP-1002",
       firstName: "Arjun",
       lastName: "Shah",
@@ -88,6 +98,7 @@ async function main() {
   await prisma.employee.create({
     data: {
       userId: adminUser.id,
+      companyId: company.id,
       empCode: "EMP-1000",
       firstName: "Meera",
       lastName: "Kapoor",
@@ -103,6 +114,7 @@ async function main() {
   const job = await prisma.jobPosting.create({
     data: {
       title: "Senior Full Stack Engineer",
+      companyId: company.id,
       departmentId: engineering.id,
       jdText: "Looking for React, Node.js, PostgreSQL, system design, mentorship, and API design experience.",
       requiredSkills: ["React", "Node.js", "PostgreSQL", "System Design", "Mentorship"],
@@ -142,6 +154,7 @@ async function main() {
   const reviewCycle = await prisma.reviewCycle.create({
     data: {
       name: "FY25 Annual Review",
+      companyId: company.id,
       type: ReviewCycleType.ANNUAL,
       startDate: new Date("2025-12-01"),
       endDate: new Date("2025-12-31"),
@@ -191,6 +204,7 @@ async function main() {
     data: [
       {
         title: "System Design for Product Engineers",
+        companyId: company.id,
         description: "Design scalable backend and frontend systems.",
         durationHrs: 12,
         level: "Intermediate",
@@ -198,6 +212,7 @@ async function main() {
       },
       {
         title: "Performance Reviews That Work",
+        companyId: company.id,
         description: "Write useful feedback and calibrate fairly.",
         durationHrs: 6,
         level: "Manager",

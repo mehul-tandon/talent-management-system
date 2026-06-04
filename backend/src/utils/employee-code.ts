@@ -10,7 +10,7 @@ function buildCandidateEmployeeCode() {
 export async function generateEmployeeCode(prisma: Pick<PrismaClient, "employee">, maxAttempts = 5) {
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const empCode = buildCandidateEmployeeCode();
-    const existingEmployee = await prisma.employee.findUnique({
+    const existingEmployee = await prisma.employee.findFirst({
       where: { empCode },
       select: { id: true }
     });

@@ -70,18 +70,33 @@ enum ReviewType {
   DIRECT_REPORT
 }
 
+model Company {
+  id           String        @id @default(cuid())
+  name         String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  users        User[]
+  departments  Department[]
+  employees    Employee[]
+  jobPostings  JobPosting[]
+  reviewCycles ReviewCycle[]
+  courses      Course[]
+}
+
 model User {
-  id           String      @id @default(cuid())
-  email        String      @unique
-  passwordHash String
-  role         Role
-  isActive     Boolean     @default(true)
-  lastLogin    DateTime?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  employee     Employee?
-  sessions     Session[]
-  auditLogs    AuditLog[]
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  role          Role
+  companyId     String
+  isActive      Boolean        @default(true)
+  lastLogin     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee      Employee?
+  sessions      Session[]
+  auditLogs     AuditLog[]
   notifications Notification[]
 }
 
@@ -99,53 +114,62 @@ model Session {
 
 model Department {
   id          String       @id @default(cuid())
-  name        String       @unique
+  name        String
+  companyId   String
   location    String?
   costCenter  String?
   headId      String?
   parentId    String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   head        Employee?    @relation("DepartmentHead", fields: [headId], references: [id], onDelete: SetNull)
   parent      Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   children    Department[] @relation("DepartmentHierarchy")
   employees   Employee[]
   jobPostings JobPosting[]
+
+  @@unique([companyId, name])
 }
 
 model Employee {
-  id              String            @id @default(cuid())
-  userId          String            @unique
-  empCode         String            @unique
-  firstName       String
-  lastName        String
-  designation     String
-  hireDate        DateTime
-  status          EmployeeStatus    @default(ONBOARDING)
-  departmentId    String
-  managerId       String?
-  location        String?
-  phone           String?
-  skills          String[]          @default([])
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  deletedAt       DateTime?
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  department      Department        @relation(fields: [departmentId], references: [id])
-  manager         Employee?         @relation("ManagerReports", fields: [managerId], references: [id], onDelete: SetNull)
-  directReports   Employee[]        @relation("ManagerReports")
-  headedDepartments Department[]    @relation("DepartmentHead")
-  goals           Goal[]
-  reviewsAbout    Review[]          @relation("Reviewee")
-  reviewsGiven    Review[]          @relation("Reviewer")
-  interviews      Interview[]       @relation("Interviewer")
-  compensation    Compensation[]
-  enrollments     Enrollment[]
+  id                String         @id @default(cuid())
+  userId            String         @unique
+  companyId         String
+  empCode           String
+  firstName         String
+  lastName          String
+  designation       String
+  hireDate          DateTime
+  status            EmployeeStatus @default(ONBOARDING)
+  departmentId      String
+  managerId         String?
+  location          String?
+  phone             String?
+  skills            String[]       @default([])
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  deletedAt         DateTime?
+  company           Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department        Department     @relation(fields: [departmentId], references: [id])
+  manager           Employee?      @relation("ManagerReports", fields: [managerId], references: [id], onDelete: SetNull)
+  directReports     Employee[]     @relation("ManagerReports")
+  headedDepartments Department[]   @relation("DepartmentHead")
+  goals             Goal[]
+  reviewsAbout      Review[]       @relation("Reviewee")
+  reviewsGiven      Review[]       @relation("Reviewer")
+  interviews        Interview[]    @relation("Interviewer")
+  compensation      Compensation[]
+  enrollments       Enrollment[]
+
+  @@unique([companyId, empCode])
 }
 
 model JobPosting {
   id             String        @id @default(cuid())
   title          String
+  companyId      String
   departmentId   String
   jdText         String
   requiredSkills String[]      @default([])
@@ -155,30 +179,32 @@ model JobPosting {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   deletedAt      DateTime?
+  company        Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   department     Department    @relation(fields: [departmentId], references: [id])
   applications   Application[]
 
   @@index([status])
   @@index([departmentId])
+  @@index([companyId])
 }
 
 model Application {
-  id                String            @id @default(cuid())
-  jobId             String
-  applicantName     String
-  email             String
-  resumeUrl         String?
-  resumeText        String?
-  aiMatchScore      Int?
-  aiSummary         String?
-  extractedSkills   String[]          @default([])
-  stage             ApplicationStage  @default(APPLIED)
-  strengths         String[]          @default([])
-  gaps              String[]          @default([])
-  appliedAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  job               JobPosting        @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  interviews        Interview[]
+  id              String           @id @default(cuid())
+  jobId           String
+  applicantName   String
+  email           String
+  resumeUrl       String?
+  resumeText      String?
+  aiMatchScore    Int?
+  aiSummary       String?
+  extractedSkills String[]         @default([])
+  stage           ApplicationStage @default(APPLIED)
+  strengths       String[]         @default([])
+  gaps            String[]         @default([])
+  appliedAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  job             JobPosting       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  interviews      Interview[]
 
   @@index([jobId])
   @@index([stage])
@@ -198,17 +224,17 @@ model Interview {
 }
 
 model Goal {
-  id          String      @id @default(cuid())
+  id          String     @id @default(cuid())
   employeeId  String
   title       String
   description String
   dueDate     DateTime
-  progress    Int         @default(0)
-  status      GoalStatus  @default(NOT_STARTED)
-  type        GoalType    @default(INDIVIDUAL)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  employee    Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  progress    Int        @default(0)
+  status      GoalStatus @default(NOT_STARTED)
+  type        GoalType   @default(INDIVIDUAL)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  employee    Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([employeeId])
   @@index([status])
@@ -217,29 +243,31 @@ model Goal {
 model ReviewCycle {
   id        String          @id @default(cuid())
   name      String
+  companyId String
   type      ReviewCycleType
   startDate DateTime
   endDate   DateTime
   status    ReviewStatus    @default(DRAFT)
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+  company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
   reviews   Review[]
 }
 
 model Review {
-  id         String        @id @default(cuid())
+  id         String       @id @default(cuid())
   cycleId    String
   revieweeId String
   reviewerId String
   type       ReviewType
   ratings    Json
   comments   String?
-  status     ReviewStatus  @default(DRAFT)
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  cycle      ReviewCycle   @relation(fields: [cycleId], references: [id], onDelete: Cascade)
-  reviewee   Employee      @relation("Reviewee", fields: [revieweeId], references: [id], onDelete: Cascade)
-  reviewer   Employee      @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  status     ReviewStatus @default(DRAFT)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  cycle      ReviewCycle  @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  reviewee   Employee     @relation("Reviewee", fields: [revieweeId], references: [id], onDelete: Cascade)
+  reviewer   Employee     @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@index([cycleId, revieweeId])
 }
@@ -247,6 +275,7 @@ model Review {
 model Course {
   id          String       @id @default(cuid())
   title       String
+  companyId   String
   description String
   durationHrs Int
   level       String
@@ -254,6 +283,7 @@ model Course {
   isMandatory Boolean      @default(false)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   enrollments Enrollment[]
 }
 
