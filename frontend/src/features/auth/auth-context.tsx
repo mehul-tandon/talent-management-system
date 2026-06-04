@@ -6,6 +6,7 @@ import {
   type PropsWithChildren
 } from "react";
 import { api, setAccessToken } from "../../lib/api";
+import { queryClient } from "../../lib/query-client";
 import type { AuthUser } from "../../types/api";
 
 interface AuthContextValue {
@@ -86,6 +87,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       try {
         await api.delete("/auth/logout");
       } finally {
+        queryClient.clear();
         setAccessToken(null);
         setUser(null);
       }
